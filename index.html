@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#9ed4f2" />
+    <title>Ginza Rooftop Honey Catch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Figtree:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="sky" aria-hidden="true"></div>
+      <div class="skyline" aria-hidden="true"></div>
+      <div class="haze" aria-hidden="true"></div>
+
+      <header class="hud" id="hud" hidden>
+        <div class="timer" id="timer" aria-live="polite">15.0</div>
+        <div class="score-wrap">
+          <span class="score-label">Nectar</span>
+          <span class="score" id="score">0</span>
+        </div>
+        <div class="jar" aria-label="Honey bottle fill level">
+          <div class="jar-glass" title="Honey bottle">
+            <div class="jar-fill" id="jarFill"></div>
+          </div>
+          <span class="jar-label">Bottle</span>
+        </div>
+      </header>
+
+      <canvas id="game" width="720" height="1280" aria-label="Ginza Rooftop Honey Catch playfield"></canvas>
+
+      <section class="panel title-panel" id="titlePanel">
+        <p class="eyebrow">Ginza Honey Bee Project</p>
+        <h1 class="brand">Ginza Rooftop<br /><em>Honey Catch</em></h1>
+        <p class="lede">
+          Fifteen seconds on a Ginza rooftop. Catch spring nectar. Dodge the weather and wasps.
+        </p>
+        <button type="button" class="btn primary" id="startBtn">Begin the Catch</button>
+        <p class="hint">Swipe or drag · Arrow keys on desktop</p>
+      </section>
+
+      <section class="panel result-panel" id="resultPanel" hidden>
+        <p class="eyebrow">Round complete</p>
+        <h2 class="result-title" id="resultTitle">Honey harvested</h2>
+        <p class="result-copy" id="resultCopy"></p>
+        <ul class="tally" id="tally"></ul>
+        <div class="cta-row">
+          <a
+            class="btn primary"
+            id="ctaPrimary"
+            href="https://www.henri-charpentier.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Taste the Ginza Collab Desserts</a
+          >
+          <a
+            class="btn ghost"
+            id="ctaSecondary"
+            href="https://www.ginza.jp/en/csr/2002"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Learn more about the rooftop eco-project</a
+          >
+        </div>
+        <p class="partner-note">
+          Partners:
+          <a
+            href="https://www.henri-charpentier.com/eng/shop/ginza-maison/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Henri Charpentier</a
+          >
+          ·
+          <a href="https://www.mikasakaikan.co.jp/" target="_blank" rel="noopener noreferrer"
+            >Mikasa Kaikan</a
+          >
+        </p>
+        <button type="button" class="btn text" id="replayBtn">Play again</button>
+      </section>
+
+      <div class="freeze-flash" id="freezeFlash" aria-hidden="true"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
