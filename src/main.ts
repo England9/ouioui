@@ -35,19 +35,19 @@ const FLOWER_META: Record<
 > = {
   cherry: {
     label: 'Cherry Blossoms',
-    color: '#f2a7bd',
+    color: '#f4a0b8',
     points: 3,
     message: "You collected mostly Cherry Blossoms! Spring's elegant nectar is ready.",
   },
   tulip: {
     label: 'Tulip Tree Flowers',
-    color: '#f5d76e',
+    color: '#f6cf45',
     points: 2,
     message: 'You collected mostly Tulip Tree Flowers! Bright rooftop nectar for patisserie gold.',
   },
   chestnut: {
     label: 'Horse Chestnut Flowers',
-    color: '#9fd4c2',
+    color: '#7ec9a0',
     points: 2,
     message: 'You collected mostly Horse Chestnut Flowers! Soft urban nectar, ginza-smooth.',
   },
@@ -101,7 +101,7 @@ function resize() {
   canvas.width = Math.floor(state.w * state.dpr)
   canvas.height = Math.floor(state.h * state.dpr)
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0)
-  state.playerW = Math.max(58, Math.min(86, state.w * 0.18))
+  state.playerW = Math.max(52, Math.min(78, state.w * 0.16))
 }
 
 function resetRound() {
@@ -179,7 +179,7 @@ function spawnEntity(now: number) {
     vx = rand(-90, 90)
     spin = rand(-4, 4)
   } else {
-    r = kind === 'cherry' ? 18 : 17
+    r = kind === 'cherry' ? 22 : kind === 'tulip' ? 21 : 20
   }
 
   state.entities.push({
@@ -201,8 +201,17 @@ function playerRect() {
   const x = state.playerX * state.w
   const y = state.h * PLAYER_Y_RATIO
   const w = state.playerW
-  const h = w * 0.55
-  return { x, y, w, h, left: x - w / 2, right: x + w / 2, top: y - h * 0.35, bottom: y + h * 0.45 }
+  const h = w * 1.35
+  return {
+    x,
+    y,
+    w,
+    h,
+    left: x - w * 0.4,
+    right: x + w * 0.4,
+    top: y - h * 0.52,
+    bottom: y + h * 0.5,
+  }
 }
 
 function hitTest(e: Entity) {
@@ -330,48 +339,115 @@ function update(dt: number, now: number) {
   state.entities = keep
 }
 
+function drawStemLeaf(r: number) {
+  ctx.strokeStyle = '#4f8a4a'
+  ctx.lineWidth = Math.max(1.5, r * 0.12)
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(0, r * 0.15)
+  ctx.lineTo(0, r * 0.95)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(0, r * 0.55)
+  ctx.quadraticCurveTo(r * 0.45, r * 0.4, r * 0.55, r * 0.7)
+  ctx.quadraticCurveTo(r * 0.2, r * 0.7, 0, r * 0.6)
+  ctx.fillStyle = '#6fad68'
+  ctx.fill()
+}
+
 function drawFlower(e: Entity) {
   const { x, y, r, rot, kind } = e
   ctx.save()
   ctx.translate(x, y)
-  ctx.rotate(rot)
+  ctx.rotate(rot * 0.35)
 
   if (kind === 'cherry') {
+    drawStemLeaf(r)
     for (let i = 0; i < 5; i++) {
-      ctx.rotate((Math.PI * 2) / 5)
+      const a = (Math.PI * 2 * i) / 5 - Math.PI / 2
+      const px = Math.cos(a) * r * 0.38
+      const py = Math.sin(a) * r * 0.38 - r * 0.05
       ctx.beginPath()
-      ctx.ellipse(0, -r * 0.45, r * 0.28, r * 0.48, 0, 0, Math.PI * 2)
-      ctx.fillStyle = '#f2a7bd'
+      ctx.ellipse(px, py, r * 0.34, r * 0.42, a, 0, Math.PI * 2)
+      const grad = ctx.createRadialGradient(px, py, 0, px, py, r * 0.42)
+      grad.addColorStop(0, '#ffe2ea')
+      grad.addColorStop(0.55, '#f4a0b8')
+      grad.addColorStop(1, '#e8789a')
+      ctx.fillStyle = grad
+      ctx.fill()
+      // petal notch
+      ctx.beginPath()
+      ctx.moveTo(px + Math.cos(a) * r * 0.1, py + Math.sin(a) * r * 0.1)
+      ctx.lineTo(px + Math.cos(a) * r * 0.42, py + Math.sin(a) * r * 0.42 - r * 0.08)
+      ctx.lineTo(px + Math.cos(a + 0.4) * r * 0.42, py + Math.sin(a + 0.4) * r * 0.42)
+      ctx.fillStyle = 'rgba(255,255,255,0.28)'
       ctx.fill()
     }
     ctx.beginPath()
-    ctx.arc(0, 0, r * 0.22, 0, Math.PI * 2)
-    ctx.fillStyle = '#f7d6e2'
+    ctx.arc(0, -r * 0.05, r * 0.2, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffd36a'
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(0, -r * 0.05, r * 0.08, 0, Math.PI * 2)
+    ctx.fillStyle = '#c47e0c'
     ctx.fill()
   } else if (kind === 'tulip') {
-    ctx.beginPath()
-    ctx.moveTo(0, r * 0.55)
-    ctx.bezierCurveTo(r * 0.9, r * 0.1, r * 0.7, -r * 0.7, 0, -r * 0.55)
-    ctx.bezierCurveTo(-r * 0.7, -r * 0.7, -r * 0.9, r * 0.1, 0, r * 0.55)
-    ctx.fillStyle = '#f5d76e'
-    ctx.fill()
-    ctx.beginPath()
-    ctx.moveTo(0, r * 0.2)
-    ctx.quadraticCurveTo(r * 0.2, -r * 0.1, 0, -r * 0.45)
-    ctx.quadraticCurveTo(-r * 0.2, -r * 0.1, 0, r * 0.2)
-    ctx.fillStyle = '#e8b84a'
-    ctx.fill()
-  } else {
-    for (let i = 0; i < 6; i++) {
-      ctx.rotate(Math.PI / 3)
+    // tulip-tree cup: bright yellow petals + orange center
+    drawStemLeaf(r)
+    for (let i = 0; i < 4; i++) {
+      const a = (Math.PI / 2) * i - Math.PI / 4
+      ctx.save()
+      ctx.rotate(a)
       ctx.beginPath()
-      ctx.ellipse(0, -r * 0.35, r * 0.2, r * 0.42, 0, 0, Math.PI * 2)
-      ctx.fillStyle = '#9fd4c2'
+      ctx.moveTo(0, 0)
+      ctx.bezierCurveTo(r * 0.55, -r * 0.15, r * 0.5, -r * 0.75, 0, -r * 0.85)
+      ctx.bezierCurveTo(-r * 0.5, -r * 0.75, -r * 0.55, -r * 0.15, 0, 0)
+      const g = ctx.createLinearGradient(0, 0, 0, -r)
+      g.addColorStop(0, '#f8df6a')
+      g.addColorStop(0.55, '#f6cf45')
+      g.addColorStop(1, '#efb020')
+      ctx.fillStyle = g
+      ctx.fill()
+      ctx.restore()
+    }
+    ctx.beginPath()
+    ctx.arc(0, -r * 0.08, r * 0.22, 0, Math.PI * 2)
+    ctx.fillStyle = '#e07a2f'
+    ctx.fill()
+    for (let i = 0; i < 5; i++) {
+      const a = (Math.PI * 2 * i) / 5
+      ctx.beginPath()
+      ctx.arc(Math.cos(a) * r * 0.12, -r * 0.08 + Math.sin(a) * r * 0.12, r * 0.05, 0, Math.PI * 2)
+      ctx.fillStyle = '#7a3d12'
+      ctx.fill()
+    }
+  } else {
+    // horse chestnut: creamy white/blush petals with yellow freckles + mint accents
+    drawStemLeaf(r)
+    for (let i = 0; i < 5; i++) {
+      const a = (Math.PI * 2 * i) / 5 - Math.PI / 2
+      const px = Math.cos(a) * r * 0.32
+      const py = Math.sin(a) * r * 0.32 - r * 0.02
+      ctx.beginPath()
+      ctx.ellipse(px, py, r * 0.3, r * 0.4, a, 0, Math.PI * 2)
+      ctx.fillStyle = i % 2 === 0 ? '#fff7f0' : '#e8f7ee'
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(126, 201, 160, 0.55)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+      // freckle blotch
+      ctx.beginPath()
+      ctx.ellipse(px * 0.7, py * 0.7, r * 0.1, r * 0.08, a, 0, Math.PI * 2)
+      ctx.fillStyle = '#f0c85a'
       ctx.fill()
     }
     ctx.beginPath()
-    ctx.arc(0, 0, r * 0.2, 0, Math.PI * 2)
-    ctx.fillStyle = '#dff3ea'
+    ctx.arc(0, -r * 0.02, r * 0.18, 0, Math.PI * 2)
+    ctx.fillStyle = '#7ec9a0'
+    ctx.fill()
+    ctx.beginPath()
+    ctx.arc(0, -r * 0.02, r * 0.08, 0, Math.PI * 2)
+    ctx.fillStyle = '#3f7a58'
     ctx.fill()
   }
   ctx.restore()
@@ -385,110 +461,190 @@ function drawObstacle(e: Entity) {
 
   if (kind === 'rain') {
     ctx.beginPath()
-    ctx.moveTo(0, -r)
-    ctx.bezierCurveTo(r * 0.7, -r * 0.2, r * 0.55, r * 0.5, 0, r)
-    ctx.bezierCurveTo(-r * 0.55, r * 0.5, -r * 0.7, -r * 0.2, 0, -r)
-    ctx.fillStyle = 'rgba(160, 196, 224, 0.85)'
+    ctx.moveTo(0, -r * 1.1)
+    ctx.bezierCurveTo(r * 0.75, -r * 0.2, r * 0.6, r * 0.55, 0, r)
+    ctx.bezierCurveTo(-r * 0.6, r * 0.55, -r * 0.75, -r * 0.2, 0, -r * 1.1)
+    const g = ctx.createLinearGradient(0, -r, 0, r)
+    g.addColorStop(0, 'rgba(180, 220, 255, 0.95)')
+    g.addColorStop(1, 'rgba(70, 140, 210, 0.9)')
+    ctx.fillStyle = g
+    ctx.fill()
+    ctx.beginPath()
+    ctx.ellipse(-r * 0.15, -r * 0.2, r * 0.15, r * 0.28, -0.4, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'
     ctx.fill()
   } else if (kind === 'wind') {
-    ctx.strokeStyle = 'rgba(200, 214, 228, 0.7)'
-    ctx.lineWidth = 2.5
+    ctx.strokeStyle = 'rgba(90, 140, 170, 0.75)'
+    ctx.lineWidth = 2.8
     ctx.lineCap = 'round'
     for (let i = 0; i < 3; i++) {
-      const yy = (i - 1) * 8
+      const yy = (i - 1) * 9
       ctx.beginPath()
-      ctx.moveTo(-r, yy)
-      ctx.bezierCurveTo(-r * 0.2, yy - 8, r * 0.2, yy + 8, r, yy)
+      ctx.moveTo(-r * 1.1, yy)
+      ctx.bezierCurveTo(-r * 0.2, yy - 10, r * 0.25, yy + 10, r * 1.15, yy)
       ctx.stroke()
     }
+    // leaf tumble
+    ctx.rotate(0.4)
+    ctx.beginPath()
+    ctx.ellipse(r * 0.55, -4, r * 0.28, r * 0.14, 0.5, 0, Math.PI * 2)
+    ctx.fillStyle = '#8fbf6a'
+    ctx.fill()
   } else {
     // wasp
-    ctx.fillStyle = '#1a1a14'
     ctx.beginPath()
-    ctx.ellipse(-r * 0.55, 0, r * 0.35, r * 0.2, -0.4, 0, Math.PI * 2)
-    ctx.ellipse(r * 0.55, 0, r * 0.35, r * 0.2, 0.4, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(220, 230, 240, 0.45)'
+    ctx.ellipse(-r * 0.6, -r * 0.05, r * 0.38, r * 0.22, -0.5, 0, Math.PI * 2)
+    ctx.ellipse(r * 0.55, -r * 0.08, r * 0.36, r * 0.2, 0.45, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)'
     ctx.fill()
+    ctx.strokeStyle = 'rgba(120, 140, 160, 0.45)'
+    ctx.lineWidth = 1
+    ctx.stroke()
+
     ctx.beginPath()
-    ctx.ellipse(0, 0, r * 0.55, r * 0.38, 0, 0, Math.PI * 2)
-    ctx.fillStyle = '#f0d27a'
+    ctx.ellipse(0, 0, r * 0.58, r * 0.4, 0, 0, Math.PI * 2)
+    ctx.fillStyle = '#f6cf45'
     ctx.fill()
+    ctx.fillStyle = '#2a2418'
+    ctx.fillRect(-r * 0.22, -r * 0.38, r * 0.16, r * 0.76)
+    ctx.fillRect(r * 0.05, -r * 0.38, r * 0.16, r * 0.76)
+    ctx.beginPath()
+    ctx.arc(-r * 0.35, -r * 0.05, r * 0.12, 0, Math.PI * 2)
     ctx.fillStyle = '#1c1710'
-    ctx.fillRect(-r * 0.18, -r * 0.35, r * 0.14, r * 0.7)
-    ctx.fillRect(r * 0.05, -r * 0.35, r * 0.14, r * 0.7)
+    ctx.fill()
   }
   ctx.restore()
+}
+
+function drawHoneyBottle(w: number, h: number, fillRatio: number, frozen: boolean) {
+  // Classic squeeze/pour honey bottle: tall neck + shoulders + rounded body + screw cap
+  const mouthTop = -h * 0.58
+  const neckTop = -h * 0.4
+  const shoulder = -h * 0.18
+  const bodyBottom = h * 0.5
+
+  ctx.beginPath()
+  ctx.ellipse(0, h * 0.55, w * 0.4, h * 0.07, 0, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(60, 90, 50, 0.16)'
+  ctx.fill()
+
+  // bottle silhouette
+  ctx.beginPath()
+  ctx.moveTo(-w * 0.14, mouthTop)
+  ctx.lineTo(w * 0.14, mouthTop)
+  ctx.lineTo(w * 0.15, neckTop)
+  ctx.quadraticCurveTo(w * 0.18, -h * 0.28, w * 0.36, shoulder)
+  ctx.quadraticCurveTo(w * 0.5, -h * 0.02, w * 0.46, h * 0.22)
+  ctx.quadraticCurveTo(w * 0.42, bodyBottom, 0, bodyBottom + h * 0.04)
+  ctx.quadraticCurveTo(-w * 0.42, bodyBottom, -w * 0.46, h * 0.22)
+  ctx.quadraticCurveTo(-w * 0.5, -h * 0.02, -w * 0.36, shoulder)
+  ctx.quadraticCurveTo(-w * 0.18, -h * 0.28, -w * 0.15, neckTop)
+  ctx.closePath()
+
+  const glass = ctx.createLinearGradient(-w * 0.5, 0, w * 0.5, 0)
+  glass.addColorStop(0, frozen ? 'rgba(175, 185, 165, 0.8)' : 'rgba(255, 255, 255, 0.62)')
+  glass.addColorStop(0.4, frozen ? 'rgba(220, 210, 160, 0.45)' : 'rgba(255, 252, 235, 0.28)')
+  glass.addColorStop(1, frozen ? 'rgba(155, 165, 140, 0.75)' : 'rgba(210, 230, 245, 0.5)')
+  ctx.fillStyle = glass
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(90, 70, 30, 0.45)'
+  ctx.lineWidth = 2.2
+  ctx.stroke()
+
+  ctx.save()
+  ctx.clip()
+  const fillH = (bodyBottom - neckTop) * Math.min(1, Math.max(0.2, fillRatio))
+  const honeyTop = bodyBottom - fillH
+  const honey = ctx.createLinearGradient(0, honeyTop, 0, bodyBottom)
+  honey.addColorStop(0, '#ffe58f')
+  honey.addColorStop(0.4, '#f0b429')
+  honey.addColorStop(1, '#b8720c')
+  ctx.fillStyle = honey
+  ctx.fillRect(-w * 0.55, honeyTop, w * 1.1, bodyBottom - honeyTop + 8)
+  ctx.beginPath()
+  ctx.ellipse(0, honeyTop, w * 0.36, 5, 0, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+  ctx.fill()
+  ctx.restore()
+
+  // shine
+  ctx.beginPath()
+  ctx.moveTo(-w * 0.26, -h * 0.08)
+  ctx.quadraticCurveTo(-w * 0.3, h * 0.12, -w * 0.24, h * 0.32)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+  ctx.lineWidth = 3
+  ctx.lineCap = 'round'
+  ctx.stroke()
+
+  // screw cap (gold)
+  const capY = mouthTop - h * 0.02
+  ctx.beginPath()
+  ctx.roundRect(-w * 0.2, capY - h * 0.08, w * 0.4, h * 0.12, 4)
+  const cap = ctx.createLinearGradient(0, capY - h * 0.08, 0, capY + h * 0.04)
+  cap.addColorStop(0, '#ffe28a')
+  cap.addColorStop(0.5, '#e8a820')
+  cap.addColorStop(1, '#a86a0c')
+  ctx.fillStyle = cap
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(90, 60, 10, 0.4)'
+  ctx.lineWidth = 1.2
+  ctx.stroke()
+  // cap ridges
+  ctx.strokeStyle = 'rgba(90, 60, 10, 0.25)'
+  for (let i = 0; i < 3; i++) {
+    const yy = capY - h * 0.06 + i * h * 0.03
+    ctx.beginPath()
+    ctx.moveTo(-w * 0.16, yy)
+    ctx.lineTo(w * 0.16, yy)
+    ctx.stroke()
+  }
+
+  // paper label
+  ctx.fillStyle = 'rgba(255, 248, 238, 0.92)'
+  ctx.beginPath()
+  ctx.roundRect(-w * 0.24, h * 0.02, w * 0.48, h * 0.18, 4)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(196, 126, 12, 0.5)'
+  ctx.stroke()
+  ctx.fillStyle = '#c47e0c'
+  ctx.font = `700 ${Math.max(9, w * 0.15)}px Figtree, sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('HONEY', 0, h * 0.11)
 }
 
 function drawPlayer(now: number) {
   const p = playerRect()
-  const bob = Math.sin(state.beeBob) * 3
+  const bob = Math.sin(state.beeBob) * 2.5
   const frozen = now < state.freezeUntil
+  const fillRatio = Math.min(1, state.caught / MAX_JAR)
 
   ctx.save()
   ctx.translate(p.x, p.y + bob)
-  if (frozen) ctx.globalAlpha = 0.7
-
-  // honeycomb / jar catcher
-  const w = p.w
-  const h = p.h
-  ctx.beginPath()
-  ctx.moveTo(-w * 0.48, -h * 0.15)
-  ctx.lineTo(-w * 0.32, -h * 0.42)
-  ctx.lineTo(w * 0.32, -h * 0.42)
-  ctx.lineTo(w * 0.48, -h * 0.15)
-  ctx.lineTo(w * 0.38, h * 0.42)
-  ctx.lineTo(-w * 0.38, h * 0.42)
-  ctx.closePath()
-  ctx.fillStyle = frozen ? '#7a6540' : '#c9922e'
-  ctx.fill()
-  ctx.strokeStyle = 'rgba(255, 236, 190, 0.45)'
-  ctx.lineWidth = 2
-  ctx.stroke()
-
-  // honeycomb cells
-  ctx.strokeStyle = 'rgba(60, 40, 10, 0.28)'
-  ctx.lineWidth = 1.25
-  for (let row = -1; row <= 1; row++) {
-    for (let col = -2; col <= 2; col++) {
-      const cx = col * 12 + (row % 2 ? 6 : 0)
-      const cy = row * 10
-      hex(cx, cy, 6)
-    }
-  }
-
-  // honey glow in center
-  ctx.beginPath()
-  ctx.ellipse(0, h * 0.08, w * 0.18, h * 0.18, 0, 0, Math.PI * 2)
-  ctx.fillStyle = 'rgba(255, 214, 120, 0.55)'
-  ctx.fill()
-
+  if (frozen) ctx.globalAlpha = 0.75
+  drawHoneyBottle(p.w, p.h, Math.max(0.22, fillRatio), frozen)
   ctx.restore()
 }
 
-function hex(x: number, y: number, r: number) {
-  ctx.beginPath()
-  for (let i = 0; i < 6; i++) {
-    const a = (Math.PI / 3) * i + Math.PI / 6
-    const px = x + Math.cos(a) * r
-    const py = y + Math.sin(a) * r
-    if (i === 0) ctx.moveTo(px, py)
-    else ctx.lineTo(px, py)
-  }
-  ctx.closePath()
-  ctx.stroke()
-}
-
 function drawAmbient() {
-  // subtle floating motes behind playfield
   ctx.save()
-  ctx.globalAlpha = 0.12
-  for (let i = 0; i < 12; i++) {
-    const x = ((i * 97) % state.w) + Math.sin(state.beeBob + i) * 8
-    const y = ((i * 53) % (state.h * 0.7)) + 40
+  for (let i = 0; i < 10; i++) {
+    const x = ((i * 97 + state.beeBob * 12) % (state.w + 40)) - 20
+    const y = ((i * 53) % (state.h * 0.55)) + 50
+    ctx.globalAlpha = 0.18 + (i % 3) * 0.05
     ctx.beginPath()
-    ctx.arc(x, y, 1.5 + (i % 3), 0, Math.PI * 2)
-    ctx.fillStyle = '#f0d27a'
+    ctx.ellipse(x, y, 10 + (i % 3) * 4, 4, 0.2 * i, 0, Math.PI * 2)
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  }
+  // soft pollen dots
+  ctx.globalAlpha = 0.22
+  for (let i = 0; i < 14; i++) {
+    const x = ((i * 71) % state.w) + Math.sin(state.beeBob + i) * 10
+    const y = ((i * 43) % (state.h * 0.65)) + 30
+    ctx.beginPath()
+    ctx.arc(x, y, 1.4 + (i % 2), 0, Math.PI * 2)
+    ctx.fillStyle = i % 2 ? '#f6cf45' : '#f4a0b8'
     ctx.fill()
   }
   ctx.restore()
